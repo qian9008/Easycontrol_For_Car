@@ -26,6 +26,28 @@ public final class Scrcpy {
     private static final int timeoutDelay = 5 * 1000;
 
     public static void main(String... args) {
+        int status = 0;
+        try {
+            internalMain(args);
+        } catch (Throwable t) {
+            L.e("Fatal error", t);
+            status = 1;
+        } finally {
+            System.exit(status);
+        }
+    }
+
+    private static void internalMain(String... args) {
+        Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            L.e("Exception on thread " + t, e);
+            if (defaultHandler != null) {
+                defaultHandler.uncaughtException(t, e);
+            }
+        });
+
+        dropRootPrivileges();
+
         L.logMode = 1;
         L.postLog();
         try {
@@ -40,7 +62,7 @@ public final class Scrcpy {
             // 解析参数
             Options.parse(args);
             // 初始化
-            Workarounds.apply(1);
+            Workarounds.apply();
             ServiceManager.setManagers();
             Device.init();
             // 连接
@@ -75,6 +97,17 @@ public final class Scrcpy {
         } finally {
             // 释放资源
             release();
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void dropRootPrivileges() {
+        try {
+            if (Os.getuid() == 0) {
+                Os.setuid(2000);
+            }
+        } catch (Exception e) {
+            L.w("Cannot set UID", e);
         }
     }
 

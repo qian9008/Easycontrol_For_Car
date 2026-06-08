@@ -26,7 +26,7 @@ public class Server {
     public static void main(String... args) throws Exception {
         L.logMode = 2;
         outputStream = new DataOutputStream(System.out);
-        Workarounds.apply(0);
+        Workarounds.apply();
         ServiceManager.setManagers();
         new Server();
         while (true) {

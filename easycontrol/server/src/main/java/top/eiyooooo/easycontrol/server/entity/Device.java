@@ -48,7 +48,7 @@ public final class Device {
         // 折叠监听
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) setDisplayFoldListener();
         // 剪切板监听
-        setClipBoardListener();
+        if (Options.clipboardAutosync) setClipBoardListener();
         // 设置不息屏
         if (Options.keepAwake) setKeepScreenLight();
     }

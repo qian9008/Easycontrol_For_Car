@@ -67,14 +67,28 @@ public final class VideoEncode {
 
         encoderFormat.setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 50_000);
         encoderFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            encoderFormat.setInteger(MediaFormat.KEY_PRIORITY, 0);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            encoderFormat.setInteger(MediaFormat.KEY_LATENCY, 1);
+        }
     }
 
     // 初始化编码器
     private static Surface surface;
 
     public static void startEncode() throws Exception {
-        encoderFormat.setInteger(MediaFormat.KEY_WIDTH, Device.videoSize.first);
-        encoderFormat.setInteger(MediaFormat.KEY_HEIGHT, Device.videoSize.second);
+        int width = Device.videoSize.first;
+        int height = Device.videoSize.second;
+        int alignment = Options.minSizeAlignment;
+        if (alignment > 1) {
+            width = (width + alignment - 1) / alignment * alignment;
+            height = (height + alignment - 1) / alignment * alignment;
+        }
+        encoderFormat.setInteger(MediaFormat.KEY_WIDTH, width);
+        encoderFormat.setInteger(MediaFormat.KEY_HEIGHT, height);
         encoder.configure(encoderFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         // 绑定Display和Surface
         surface = encoder.createInputSurface();

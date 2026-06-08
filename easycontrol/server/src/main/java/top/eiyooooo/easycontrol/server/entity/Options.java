@@ -16,6 +16,8 @@ public final class Options {
     public static boolean useH265 = true;
     public static boolean useOpus = true;
     public static int mirrorMode = 0;
+    public static int minSizeAlignment = 8;
+    public static boolean clipboardAutosync = true;
 
     public static void parse(String... args) {
         for (String arg : args) {
@@ -61,6 +63,13 @@ public final class Options {
                         break;
                     }
                     mirrorMode = Integer.parseInt(value);
+                    break;
+                case "minSizeAlignment":
+                    int alignment = Integer.parseInt(value);
+                    if (alignment > 0) minSizeAlignment = alignment;
+                    break;
+                case "clipboardAutosync":
+                    clipboardAutosync = Integer.parseInt(value) == 1;
                     break;
             }
         }
