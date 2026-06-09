@@ -10,15 +10,21 @@ import java.nio.charset.StandardCharsets;
 
 public final class ControlPacket {
 
+    private static final ByteBuffer videoSize = ByteBuffer.allocate(4);
+    private static final ByteBuffer videoPts = ByteBuffer.allocate(8);
+
     public static void sendVideoEvent(long pts, ByteBuffer data) throws IOException, ErrnoException {
         int size = data.remaining();
         if (size < 0) return;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(12 + size);
-        byteBuffer.putInt(size);
-        byteBuffer.put(data);
-        byteBuffer.putLong(pts);
-        byteBuffer.flip();
-        Scrcpy.writeVideo(byteBuffer);
+        videoSize.clear();
+        videoSize.putInt(size);
+        videoSize.flip();
+        videoPts.clear();
+        videoPts.putLong(pts);
+        videoPts.flip();
+        Scrcpy.writeVideo(videoSize);
+        Scrcpy.writeVideo(data);
+        Scrcpy.writeVideo(videoPts);
     }
 
     public static void sendAudioEvent(ByteBuffer data) throws IOException, ErrnoException {

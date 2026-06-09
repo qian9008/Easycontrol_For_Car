@@ -7,10 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 public class L {
 
@@ -103,10 +100,9 @@ public class L {
                     if (fileLength > lastLength) {
                         RandomAccessFile raf = new RandomAccessFile(file, "r");
                         raf.seek(lastLength);
-                        String line;
-                        while ((line = raf.readLine()) != null) {
-                            System.out.println(line);
-                        }
+                        byte[] newLog = new byte[(int) (fileLength - lastLength)];
+                        raf.readFully(newLog);
+                        System.out.print(new String(newLog, StandardCharsets.UTF_8));
                         raf.close();
                         lastLength = fileLength;
                     }
