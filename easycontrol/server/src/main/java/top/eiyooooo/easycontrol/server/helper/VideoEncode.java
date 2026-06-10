@@ -61,8 +61,8 @@ public final class VideoEncode {
         encoderFormat.setInteger(MediaFormat.KEY_BIT_RATE, Options.maxVideoBit);
         encoderFormat.setInteger(MediaFormat.KEY_FRAME_RATE, Options.maxFps);
         encoderFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 10);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            encoderFormat.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD, Options.maxFps * 3);
+        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        //    encoderFormat.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD, Options.maxFps * 3);
         encoderFormat.setFloat("max-fps-to-encoder", Options.maxFps);
 
 // 移除重复发帧，避免非局域网连接时静止画面塞满 TCP 缓冲区导致严重卡顿
