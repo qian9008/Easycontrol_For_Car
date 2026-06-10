@@ -24,7 +24,11 @@ public class VideoDecode {
 
     @Override
     public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outIndex, @NonNull MediaCodec.BufferInfo bufferInfo) {
-      mediaCodec.releaseOutputBuffer(outIndex, bufferInfo.presentationTimeUs);
+      // 修复巨大的延迟Bug：
+      // 服务端传来的 bufferInfo.presentationTimeUs 是微秒级的，且基于服务端的开机时间。
+      // releaseOutputBuffer(int, long) 期望的是基于客户端开机时间的纳秒（nanoseconds）。
+      // 错误的时间戳会导致 SurfaceFlinger 将画面挂起很久甚至丢弃。改为 true 表示立即渲染。
+      mediaCodec.releaseOutputBuffer(outIndex, true);
     }
 
     @Override
