@@ -79,6 +79,10 @@ public class VideoDecode {
     // 获取视频标识头
     decodecFormat.setByteBuffer("csd-0", ByteBuffer.wrap(csd0.first));
     if (!isH265Support) decodecFormat.setByteBuffer("csd-1", ByteBuffer.wrap(csd1.first));
+    // 开启低延迟解码 (Android 11+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        decodecFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1);
+    }
     // 异步解码
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       decodec.setCallback(callback, handler);

@@ -134,6 +134,9 @@ public class AudioDecode {
       audioFormat.setSampleRate(sampleRate);
       audioFormat.setChannelMask(AudioFormat.CHANNEL_OUT_STEREO);
       // 3
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          audioTrackBuild.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
+      }
       audioTrackBuild.setBufferSizeInBytes(bufferSize);
       audioTrackBuild.setAudioAttributes(audioAttributesBulider.build());
       audioTrackBuild.setAudioFormat(audioFormat.build());
