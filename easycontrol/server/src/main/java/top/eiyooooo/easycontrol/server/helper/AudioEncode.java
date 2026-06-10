@@ -79,9 +79,20 @@ public final class AudioEncode {
             if (buffer == null) return;
             if (useOpus) {
                 if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                    buffer.getLong();
-                    int size = (int) buffer.getLong();
-                    buffer.limit(buffer.position() + size);
+                    if (buffer.remaining() >= 16) {
+                        buffer.mark();
+                        byte[] first8 = new byte[8];
+                        buffer.get(first8);
+                        buffer.reset();
+                        // 如果开头不是 OpusHead，则剥离前 16 个字节的特定封包前缀
+                        if (first8[0] != 'O' || first8[1] != 'p' || first8[2] != 'u' || first8[3] != 's') {
+                            buffer.getLong();
+                            int size = (int) buffer.getLong();
+                            if (buffer.position() + size <= buffer.capacity()) {
+                                buffer.limit(buffer.position() + size);
+                            }
+                        }
+                    }
                 }
                 // 当无声音时不发送
                 if (buffer.remaining() < 5) {
