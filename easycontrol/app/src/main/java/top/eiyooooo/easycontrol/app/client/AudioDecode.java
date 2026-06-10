@@ -119,30 +119,46 @@ public class AudioDecode {
   // 创建AudioTrack
   private void setAudioTrack() {
     int sampleRate = 48000;
-    int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT) * 4;
+    int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+    int bufferSize = minBufferSize * 4; // 默认大缓冲防破音
+    
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
       AudioTrack.Builder audioTrackBuild = new AudioTrack.Builder();
-      // 1
+      // 1. 设置音频属性
       AudioAttributes.Builder audioAttributesBulider = new AudioAttributes.Builder();
-      audioAttributesBulider.setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE);
-      audioAttributesBulider.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN);
       int audioChannel = AppData.setting.getAudioChannel();
-      if (audioChannel != 0) audioAttributesBulider.setLegacyStreamType(audioChannel);
-      // 2
+      
+      // 决定通道 Usage，原代码强制使用导航通道，这里增加低延迟适配
+      // 注意：Android 底层限制，低延迟模式仅在 USAGE_MEDIA 或 USAGE_GAME 下生效
+      int usage = AudioAttributes.USAGE_MEDIA; 
+      // 若用户强行指定了特定的传统流（比如闹钟、语音通话等），则回退，否则默认为 MEDIA 走低延迟
+      if (audioChannel != 0 && audioChannel != AudioManager.STREAM_MUSIC) {
+          usage = AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE;
+          audioAttributesBulider.setLegacyStreamType(audioChannel);
+      }
+      audioAttributesBulider.setUsage(usage);
+      audioAttributesBulider.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN);
+
+      // 2. 设置音频格式
       AudioFormat.Builder audioFormat = new AudioFormat.Builder();
       audioFormat.setEncoding(AudioFormat.ENCODING_PCM_16BIT);
       audioFormat.setSampleRate(sampleRate);
       audioFormat.setChannelMask(AudioFormat.CHANNEL_OUT_STEREO);
-      // 3
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      
+      // 3. 开启低延迟特性（仅限 O 以上且通道为 MEDIA 时允许）
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && usage == AudioAttributes.USAGE_MEDIA) {
           audioTrackBuild.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
+          bufferSize = minBufferSize; // 【架构师注】低延迟模式必须配合极小的 Buffer，否则底层抛异常崩溃
       }
+
       audioTrackBuild.setBufferSizeInBytes(bufferSize);
       audioTrackBuild.setAudioAttributes(audioAttributesBulider.build());
       audioTrackBuild.setAudioFormat(audioFormat.build());
       // 4
       audioTrack = audioTrackBuild.build();
-    } else audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
+    } else {
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize, AudioTrack.MODE_STREAM);
+    }
   }
 
   // 创建音频放大器
